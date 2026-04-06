@@ -20,24 +20,12 @@ jobs:
 
   security:
     runs-on: ubuntu-latest
-    needs: build   # run after build job
+    needs: build
 
     steps:
     - name: Checkout
       uses: actions/checkout@v3
 
-    # 🔍 Scan for hardcoded secrets
-    - name: TruffleHog Secret Scan
-      id: scan
-      uses: trufflesecurity/trufflehog@main
-      with:
-        path: ./
-        base: HEAD~1
-        head: HEAD
-
-    # ❌ Fail pipeline if secrets detected
-    - name: Fail if hardcoded password found
-      if: failure()
+    - name: Run TruffleHog Scan
       run: |
-        echo "❌ Hardcoded password detected! Pipeline failed."
-        exit 1
+        docker run --rm -v $PWD:/repo trufflesecurity/trufflehog:latest filesystem /repo --fail
